@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity(name = "Topico")
-@Table(name = "topicos")
+@Table(name = "topico")
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,7 +22,7 @@ public class Topico {
     int status;
     String autor;
     String curso;
-    @Embedded
+    //@Embedded
     String respuestas;
 
     public Topico(TopicoDTO datosTopico) {
