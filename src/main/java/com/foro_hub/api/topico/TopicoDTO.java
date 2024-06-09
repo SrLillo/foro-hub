@@ -1,21 +1,22 @@
 package com.foro_hub.api.topico;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record TopicoDTO(
         Long id,
-        @NotNull
+        @NotBlank
         String titulo,
-        @NotNull
+        @NotBlank
         String mensaje,
         @NotNull
         @JsonAlias("fecha_creacion") String fechaCreacion,
         @NotNull
         int status,
-        @NotNull
+        @NotBlank
         String autor,
-        @NotNull
+        @NotBlank
         String curso,
         String respuestas) {
 }
