@@ -15,7 +15,6 @@ import lombok.*;
 public class Topico {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @NotNull
     Long id;
     @NotBlank
     String titulo;
