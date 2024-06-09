@@ -1,8 +1,11 @@
 package com.foro_hub.api.topico;
 
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -44,5 +47,35 @@ public class TopicoController {
                 topico.getCurso(),
                 topico.getRespuestas()
         );
+    }
+
+    @PutMapping("/{id}")
+    @Transactional
+    public Optional<TopicoDTO> actualizarTopico(@PathVariable Long id, @RequestBody @Valid TopicoDTO topicoDTO) {
+        Optional<Topico> topicoOptional = topicoRepository.findById(id);
+        if (topicoOptional.isPresent()) {
+            Topico topico = topicoOptional.get();
+            topico.setTitulo(topicoDTO.titulo());
+            topico.setMensaje(topicoDTO.mensaje());
+            topico.setFechaCreacion(topicoDTO.fechaCreacion());
+            topico.setStatus(topicoDTO.status());
+            topico.setAutor(topicoDTO.autor());
+            topico.setCurso(topicoDTO.curso());
+            topico.setRespuestas(topicoDTO.respuestas());
+            topicoRepository.save(topico);
+            return Optional.of(convertirADTO(topico));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @Transactional
+    public void eliminarTopico(@PathVariable Long id) {
+        if (topicoRepository.existsById(id)) {
+            topicoRepository.deleteById(id);
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Topico no encontrado");
+        }
     }
 }
