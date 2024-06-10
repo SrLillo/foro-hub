@@ -2,8 +2,8 @@ package com.foro_hub.api.topico;
 
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -54,40 +54,10 @@ public class TopicoController {
         return buscarTopicosPorAnio(paginacion);
     }
 
-    private Page<TopicoDTO> buscarTopicos(Pageable paginacion, String sortBy) {
-        if (sortBy != null) {
-            paginacion = PageRequest.of(paginacion.getPageNumber(), paginacion.getPageSize(), ASC, sortBy);
-        }
-        return topicoRepository.findAll(paginacion).map(this::convertirADTO);
-    }
-
-    private Page<TopicoDTO> buscarTopicosPorAnio(Pageable paginacion) {
-        List<Topico> topicos = topicoRepository.findAll();
-        topicos.sort((t1, t2) -> {
-            String[] fecha1 = t1.getFechaCreacion().split("/");
-            String[] fecha2 = t2.getFechaCreacion().split("/");
-            return Integer.compare(Integer.parseInt(fecha1[2]), Integer.parseInt(fecha2[2]));
-        });
-        return new PageImpl<>(topicos.stream().map(this::convertirADTO).collect(Collectors.toList()));
-    }
-
     @GetMapping("/{id}")
     public Optional<TopicoDTO> mostrarTopico(@PathVariable Long id) {
         Optional<Topico> topicoOptional = topicoRepository.findById(id);
         return topicoOptional.map(this::convertirADTO);
-    }
-
-    private TopicoDTO convertirADTO(Topico topico) {
-        return new TopicoDTO(
-                topico.getId(),
-                topico.getTitulo(),
-                topico.getMensaje(),
-                topico.getFechaCreacion(),
-                topico.getStatus(),
-                topico.getAutor(),
-                topico.getCurso(),
-                topico.getRespuestas()
-        );
     }
 
     @PutMapping("/{id}")
@@ -118,5 +88,35 @@ public class TopicoController {
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Topico no encontrado");
         }
+    }
+
+    private TopicoDTO convertirADTO(Topico topico) {
+        return new TopicoDTO(
+                topico.getId(),
+                topico.getTitulo(),
+                topico.getMensaje(),
+                topico.getFechaCreacion(),
+                topico.getStatus(),
+                topico.getAutor(),
+                topico.getCurso(),
+                topico.getRespuestas()
+        );
+    }
+
+    private Page<TopicoDTO> buscarTopicos(Pageable paginacion, String sortBy) {
+        if (sortBy != null) {
+            paginacion = PageRequest.of(paginacion.getPageNumber(), paginacion.getPageSize(), ASC, sortBy);
+        }
+        return topicoRepository.findAll(paginacion).map(this::convertirADTO);
+    }
+
+    private Page<TopicoDTO> buscarTopicosPorAnio(Pageable paginacion) {
+        List<Topico> topicos = topicoRepository.findAll();
+        topicos.sort((t1, t2) -> {
+            String[] fecha1 = t1.getFechaCreacion().split("/");
+            String[] fecha2 = t2.getFechaCreacion().split("/");
+            return Integer.compare(Integer.parseInt(fecha1[2]), Integer.parseInt(fecha2[2]));
+        });
+        return new PageImpl<>(topicos.stream().map(this::convertirADTO).collect(Collectors.toList()));
     }
 }
