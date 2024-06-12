@@ -8,10 +8,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -25,44 +25,54 @@ public class TopicoController {
     private TopicoRepository topicoRepository;
 
     @PostMapping
-    public void registrarTopico(@RequestBody @Valid TopicoDTO datosTopico) {
-        topicoRepository.save(new Topico(datosTopico));
+    public ResponseEntity<TopicoDTO> registrarTopico(@RequestBody @Valid TopicoDTO topicoDTO) {
+        Topico topico = new Topico(topicoDTO);
+        Topico topicoGuardado = topicoRepository.save(topico);
+        TopicoDTO topicoGuardadoDTO = convertirADTO(topicoGuardado);
+        URI location = URI.create("/topicos/" + topicoGuardadoDTO.id());
+        return ResponseEntity.created(location).body(topicoGuardadoDTO);
     }
 
     @GetMapping
-    public Page<TopicoDTO> listarTopicos(@PageableDefault(size = 5, page = 0, direction = ASC) Pageable paginacion) {
-        return buscarTopicos(paginacion, null);
+    public ResponseEntity<Page<TopicoDTO>> listarTopicos(@PageableDefault(size = 5, page = 0, direction = ASC) Pageable paginacion) {
+        Page<TopicoDTO> topicos = buscarTopicos(paginacion, null);
+        return ResponseEntity.ok(topicos);
     }
 
     @GetMapping("/titulo")
-    public Page<TopicoDTO> listarTopicosPorTitulo(@PageableDefault(size = 5, page = 0, direction = ASC, sort = {"titulo"}) Pageable paginacion) {
-        return buscarTopicos(paginacion, "titulo");
+    public ResponseEntity<Page<TopicoDTO>> listarTopicosPorTitulo(@PageableDefault(size = 5, page = 0, direction = ASC, sort = {"titulo"}) Pageable paginacion) {
+        Page<TopicoDTO> topicos = buscarTopicos(paginacion, "titulo");
+        return ResponseEntity.ok(topicos);
     }
 
     @GetMapping("/curso")
-    public Page<TopicoDTO> listarTopicosPorCurso(@PageableDefault(size = 5, page = 0, direction = ASC, sort = {"curso"}) Pageable paginacion) {
-        return buscarTopicos(paginacion, "curso");
+    public ResponseEntity<Page<TopicoDTO>> listarTopicosPorCurso(@PageableDefault(size = 5, page = 0, direction = ASC, sort = {"curso"}) Pageable paginacion) {
+        Page<TopicoDTO> topicos = buscarTopicos(paginacion, "curso");
+        return ResponseEntity.ok(topicos);
     }
 
     @GetMapping("/fecha")
-    public Page<TopicoDTO> listarTopicosPorFecha(@PageableDefault(size = 5, page = 0, direction = ASC, sort = {"fechaCreacion"}) Pageable paginacion) {
-        return buscarTopicos(paginacion, "fechaCreacion");
+    public ResponseEntity<Page<TopicoDTO>> listarTopicosPorFecha(@PageableDefault(size = 5, page = 0, direction = ASC, sort = {"fechaCreacion"}) Pageable paginacion) {
+        Page<TopicoDTO> topicos = buscarTopicos(paginacion, "fechaCreacion");
+        return ResponseEntity.ok(topicos);
     }
 
     @GetMapping("/anio")
-    public Page<TopicoDTO> listarTopicosPorAnio(@PageableDefault(size = 5, page = 0, direction = ASC) Pageable paginacion) {
-        return buscarTopicosPorAnio(paginacion);
+    public ResponseEntity<Page<TopicoDTO>> listarTopicosPorAnio(@PageableDefault(size = 5, page = 0, direction = ASC) Pageable paginacion) {
+        Page<TopicoDTO> topicos = buscarTopicosPorAnio(paginacion);
+        return ResponseEntity.ok(topicos);
     }
 
     @GetMapping("/{id}")
-    public Optional<TopicoDTO> mostrarTopico(@PathVariable Long id) {
+    public ResponseEntity<TopicoDTO> mostrarTopico(@PathVariable Long id) {
         Optional<Topico> topicoOptional = topicoRepository.findById(id);
-        return topicoOptional.map(this::convertirADTO);
+        return topicoOptional.map(topico -> ResponseEntity.ok(convertirADTO(topico)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
     @Transactional
-    public Optional<TopicoDTO> actualizarTopico(@PathVariable Long id, @RequestBody @Valid TopicoDTO topicoDTO) {
+    public ResponseEntity<Optional<TopicoDTO>> actualizarTopico(@PathVariable Long id, @RequestBody @Valid TopicoDTO topicoDTO) {
         Optional<Topico> topicoOptional = topicoRepository.findById(id);
         if (topicoOptional.isPresent()) {
             Topico topico = topicoOptional.get();
@@ -74,19 +84,21 @@ public class TopicoController {
             topico.setCurso(topicoDTO.curso());
             topico.setRespuestas(topicoDTO.respuestas());
             topicoRepository.save(topico);
-            return Optional.of(convertirADTO(topico));
+            return ResponseEntity.ok(Optional.of(convertirADTO(topico)));
         } else {
-            return Optional.empty();
+            return ResponseEntity.notFound().build();
         }
     }
 
     @DeleteMapping("/{id}")
     @Transactional
-    public void eliminarTopico(@PathVariable Long id) {
+    public ResponseEntity eliminarTopico(@PathVariable Long id) {
         if (topicoRepository.existsById(id)) {
             topicoRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
         } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Topico no encontrado");
+            // throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Topico no encontrado");
+            return ResponseEntity.notFound().build();
         }
     }
 
