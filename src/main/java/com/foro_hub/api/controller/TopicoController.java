@@ -1,5 +1,8 @@
-package com.foro_hub.api.topico;
+package com.foro_hub.api.controller;
 
+import com.foro_hub.api.domain.topico.Topico;
+import com.foro_hub.api.domain.topico.TopicoDTO;
+import com.foro_hub.api.domain.topico.TopicoRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
